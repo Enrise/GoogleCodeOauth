@@ -242,6 +242,9 @@ class OAuthRequest {
   public static $version = '1.0';
   public static $POST_INPUT = 'php://input';
 
+  // the Apache request headers.
+  protected $headers;
+
   function __construct($http_method, $http_url, $parameters=NULL) {
     $parameters = ($parameters) ? $parameters : array();
     $parameters = array_merge( OAuthUtil::parse_parameters(parse_url($http_url, PHP_URL_QUERY)), $parameters);
@@ -402,12 +405,21 @@ class OAuthRequest {
     $host = (isset($parts['host'])) ? strtolower($parts['host']) : '';
     $path = (isset($parts['path'])) ? $parts['path'] : '';
 
+    // ugly as hell, but works like a charm.
+    if ($this->get_header('x-pound-scheme') !== false) {
+      if (0 !== preg_match('~(\w+)-(\d+)~', $this->get_header('x-pound-scheme'), $matches)) {
+        $scheme = $matches[1];
+        $port = $matches[2];
+      }
+    }
+
     if (($scheme == 'https' && $port != '443')
         || ($scheme == 'http' && $port != '80')) {
       $host = "$host:$port";
     }
     return "$scheme://$host$path";
   }
+
 
   /**
    * builds a url usable for a GET request
@@ -473,6 +485,25 @@ class OAuthRequest {
   public function build_signature($signature_method, $consumer, $token) {
     $signature = $signature_method->build_signature($this, $consumer, $token);
     return $signature;
+  }
+
+  /**
+   * Returns the header $header if it exists, false otherwise.
+   *
+   * @param string $header
+   * @return string|false
+   */
+  protected function get_header($header) {
+    if (!isset($this->headers)) {
+      $this->headers = apache_request_headers();
+
+      $this->headers = array_combine(
+        array_map('strtolower', array_keys($this->headers)),
+        $this->headers
+      );
+    }
+
+    return isset($this->headers[$header]) ? $this->headers[$header] : false;
   }
 
   /**
