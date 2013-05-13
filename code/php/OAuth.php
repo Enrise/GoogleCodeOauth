@@ -495,7 +495,7 @@ class OAuthRequest {
    */
   protected function get_header($header) {
     if (!isset($this->headers)) {
-      $this->headers = apache_request_headers();
+      $this->headers = function_exists('apache_request_headers') ? apache_request_headers() : array();
 
       $this->headers = array_combine(
         array_map('strtolower', array_keys($this->headers)),
