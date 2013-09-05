@@ -405,8 +405,8 @@ class OAuthRequest {
     $host = (isset($parts['host'])) ? strtolower($parts['host']) : '';
     $path = (isset($parts['path'])) ? $parts['path'] : '';
 
-    // ugly as hell, but works like a charm.
-    if ($this->get_header('x-pound-scheme') !== false) {
+    // make the request https, but only if the scheme isn't http to begin with.
+    if ($this->get_header('x-pound-scheme') !== false && (!isset($parts['scheme']) || $parts['scheme'] !== 'http')) {
       if (0 !== preg_match('~(\w+)-(\d+)~', $this->get_header('x-pound-scheme'), $matches)) {
         $scheme = $matches[1];
         $port = $matches[2];
