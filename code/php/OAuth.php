@@ -406,8 +406,8 @@ class OAuthRequest {
     $path = (isset($parts['path'])) ? $parts['path'] : '';
 
     // make the request https, but only if the scheme isn't http to begin with.
-    if ($this->get_header('x-pound-scheme') !== false && (!isset($parts['scheme']) || $parts['scheme'] !== 'http')) {
-      if (0 !== preg_match('~(\w+)-(\d+)~', $this->get_header('x-pound-scheme'), $matches)) {
+    if ($this->get_header('http_x_pound_scheme') !== false) {
+      if (0 !== preg_match('~(\w+)-(\d+)~', $this->get_header('http_x_pound_scheme'), $matches)) {
         $scheme = $matches[1];
         $port = $matches[2];
       }
@@ -495,7 +495,7 @@ class OAuthRequest {
    */
   protected function get_header($header) {
     if (!isset($this->headers)) {
-      $this->headers = function_exists('apache_request_headers') ? apache_request_headers() : array();
+	  $this->headers = $_SERVER;
 
       $this->headers = array_combine(
         array_map('strtolower', array_keys($this->headers)),
